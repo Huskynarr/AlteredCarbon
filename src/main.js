@@ -9,25 +9,51 @@ class App {
   constructor() {
     this.canvas = document.getElementById('webgl-canvas');
     this.loader = document.getElementById('loader-overlay');
+    this.loaderText = document.getElementById('loader-text');
     
-    this.initThree();
-    this.initLighting();
-    this.stack = new CorticalStack(this.scene);
-    this.streamManager = new DHFStreamManager(this.scene, this.stack);
-    
-    this.initControls();
-    this.initUIEvents();
-    
-    this.animate = this.animate.bind(this);
-    requestAnimationFrame(this.animate);
+    try {
+      this.initThree();
+      this.initLighting();
+      this.stack = new CorticalStack(this.scene);
+      this.streamManager = new DHFStreamManager(this.scene, this.stack);
+      
+      this.initControls();
+      this.initUIEvents();
+      
+      this.animate = this.animate.bind(this);
+      requestAnimationFrame(this.animate);
 
-    // Hide loader after scene setup
-    setTimeout(() => {
-      if (this.loader) {
-        this.loader.style.opacity = '0';
-        setTimeout(() => this.loader.style.display = 'none', 800);
+      // Hide loader safely
+      this.hideLoader();
+    } catch (err) {
+      console.error('App Initialization Error:', err);
+      if (this.loaderText) {
+        this.loaderText.style.color = '#ff0033';
+        this.loaderText.innerHTML = `SYSTEM INITIALIZATION ERROR:<br><span style="font-size: 0.8rem; color: #fff;">${err.message || err}</span><br><br><button id="btn-force-enter" style="margin-top:10px; padding:8px 16px; background:#00f0ff; border:none; cursor:pointer; font-weight:bold;">ENTER INTERFACE ANYWAY</button>`;
+        const forceBtn = document.getElementById('btn-force-enter');
+        if (forceBtn) {
+          forceBtn.addEventListener('click', () => this.forceHideLoader());
+        }
       }
-    }, 600);
+    }
+  }
+
+  hideLoader() {
+    if (!this.loader) return;
+    setTimeout(() => {
+      this.loader.style.opacity = '0';
+      this.loader.style.pointerEvents = 'none';
+      setTimeout(() => {
+        this.loader.style.display = 'none';
+      }, 800);
+    }, 400);
+  }
+
+  forceHideLoader() {
+    if (!this.loader) return;
+    this.loader.style.opacity = '0';
+    this.loader.style.pointerEvents = 'none';
+    this.loader.style.display = 'none';
   }
 
   initThree() {
@@ -65,17 +91,14 @@ class App {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     this.scene.add(ambientLight);
 
-    // Key studio light
     const keyLight = new THREE.DirectionalLight(0xffffff, 2.0);
     keyLight.position.set(5, 8, 5);
     this.scene.add(keyLight);
 
-    // Rim glowing neon cyan light
     this.rimLightCyan = new THREE.PointLight(0x00f0ff, 4, 10);
     this.rimLightCyan.position.set(-4, -2, -3);
     this.scene.add(this.rimLightCyan);
 
-    // Rim glowing violet light
     this.rimLightViolet = new THREE.PointLight(0x7000ff, 4, 10);
     this.rimLightViolet.position.set(4, 3, -2);
     this.scene.add(this.rimLightViolet);
@@ -94,52 +117,56 @@ class App {
     const consoleMsg = document.getElementById('console-msg');
     const valNeedles = document.getElementById('val-needles');
 
-    // Exploded View Toggle
-    btnExplode.addEventListener('click', () => {
-      audio.playLock();
-      const isExploded = this.stack.toggleExplodedView();
-      txtExplodeState.innerText = isExploded ? '[ON]' : '[OFF]';
-      valNeedles.innerText = isExploded ? 'DECONNECTED / EXPANDED' : 'INSERTED / LOCKED';
-      consoleMsg.innerText = isExploded 
-        ? '[SYS_INFO]: Disassembled Stack structure into component array.'
-        : '[SYS_INFO]: Stack components locked into operational capsule.';
-    });
-
-    // DHF Transfer Cast
-    btnCast.addEventListener('click', () => {
-      if (this.streamManager.isTransferring) return;
-      audio.playDHFTransfer();
-      consoleMsg.innerText = '[SYS_WARN]: Initiating high-speed DHF needle cast... Data stream engaged.';
-      
-      const synapseBar = document.getElementById('bar-synapse');
-      const synapseTxt = document.getElementById('txt-synapse-load');
-      
-      this.streamManager.triggerTransfer(
-        'download',
-        (progress) => {
-          consoleMsg.innerText = `[DHF_CAST]: Synchronizing neural memories... ${progress}%`;
-          const load = 42 + Math.floor((progress / 100) * 50);
-          synapseBar.style.width = `${load}%`;
-          synapseTxt.innerText = `${load}%`;
-        },
-        () => {
-          consoleMsg.innerText = '[SYS_SUCCESS]: DHF Memory sync complete. Sleeve identity verified.';
-          synapseBar.style.width = '42%';
-          synapseTxt.innerText = '42%';
+    if (btnExplode) {
+      btnExplode.addEventListener('click', () => {
+        audio.playLock();
+        const isExploded = this.stack.toggleExplodedView();
+        if (txtExplodeState) txtExplodeState.innerText = isExploded ? '[ON]' : '[OFF]';
+        if (valNeedles) valNeedles.innerText = isExploded ? 'DECONNECTED / EXPANDED' : 'INSERTED / LOCKED';
+        if (consoleMsg) {
+          consoleMsg.innerText = isExploded 
+            ? '[SYS_INFO]: Disassembled Stack structure into component array.'
+            : '[SYS_INFO]: Stack components locked into operational capsule.';
         }
-      );
-    });
+      });
+    }
 
-    // Audio Hum Toggle
+    if (btnCast) {
+      btnCast.addEventListener('click', () => {
+        if (this.streamManager.isTransferring) return;
+        audio.playDHFTransfer();
+        if (consoleMsg) consoleMsg.innerText = '[SYS_WARN]: Initiating high-speed DHF needle cast... Data stream engaged.';
+        
+        const synapseBar = document.getElementById('bar-synapse');
+        const synapseTxt = document.getElementById('txt-synapse-load');
+        
+        this.streamManager.triggerTransfer(
+          'download',
+          (progress) => {
+            if (consoleMsg) consoleMsg.innerText = `[DHF_CAST]: Synchronizing neural memories... ${progress}%`;
+            const load = 42 + Math.floor((progress / 100) * 50);
+            if (synapseBar) synapseBar.style.width = `${load}%`;
+            if (synapseTxt) synapseTxt.innerText = `${load}%`;
+          },
+          () => {
+            if (consoleMsg) consoleMsg.innerText = '[SYS_SUCCESS]: DHF Memory sync complete. Sleeve identity verified.';
+            if (synapseBar) synapseBar.style.width = '42%';
+            if (synapseTxt) synapseTxt.innerText = '42%';
+          }
+        );
+      });
+    }
+
     let humActive = false;
-    btnAudio.addEventListener('click', () => {
-      audio.playClick();
-      humActive = !humActive;
-      audio.playHumToggle(humActive);
-      txtAudioState.innerText = humActive ? '[ACTIVE]' : '[MUTED]';
-    });
+    if (btnAudio) {
+      btnAudio.addEventListener('click', () => {
+        audio.playClick();
+        humActive = !humActive;
+        audio.playHumToggle(humActive);
+        if (txtAudioState) txtAudioState.innerText = humActive ? '[ACTIVE]' : '[MUTED]';
+      });
+    }
 
-    // Theme Switcher Chips
     const chips = document.querySelectorAll('.theme-chip[data-theme]');
     chips.forEach(chip => {
       chip.addEventListener('click', (e) => {
@@ -163,28 +190,37 @@ class App {
           this.rimLightViolet.color.setHex(0x7000ff);
         }
 
-        consoleMsg.innerText = `[SYS_THEME]: Switched visual interface palette to [${theme.toUpperCase()}].`;
+        if (consoleMsg) consoleMsg.innerText = `[SYS_THEME]: Switched visual interface palette to [${theme.toUpperCase()}].`;
       });
     });
 
-    // Camera Preset Buttons
-    document.getElementById('cam-orbit').addEventListener('click', () => {
-      audio.playClick();
-      gsap.to(this.camera.position, { x: 4, y: 2, z: 6, duration: 1.5, ease: 'power2.inOut' });
-      gsap.to(this.controls.target, { x: 0, y: 0, z: 0, duration: 1.5, ease: 'power2.inOut' });
-    });
+    const camOrbit = document.getElementById('cam-orbit');
+    const camCore = document.getElementById('cam-core');
+    const camNeedles = document.getElementById('cam-needles');
 
-    document.getElementById('cam-core').addEventListener('click', () => {
-      audio.playClick();
-      gsap.to(this.camera.position, { x: 0, y: 0.2, z: 2.8, duration: 1.5, ease: 'power2.inOut' });
-      gsap.to(this.controls.target, { x: 0, y: 0, z: 0, duration: 1.5, ease: 'power2.inOut' });
-    });
+    if (camOrbit) {
+      camOrbit.addEventListener('click', () => {
+        audio.playClick();
+        gsap.to(this.camera.position, { x: 4, y: 2, z: 6, duration: 1.5, ease: 'power2.inOut' });
+        gsap.to(this.controls.target, { x: 0, y: 0, z: 0, duration: 1.5, ease: 'power2.inOut' });
+      });
+    }
 
-    document.getElementById('cam-needles').addEventListener('click', () => {
-      audio.playClick();
-      gsap.to(this.camera.position, { x: 2, y: -2.5, z: 2, duration: 1.5, ease: 'power2.inOut' });
-      gsap.to(this.controls.target, { x: 0, y: -1.8, z: 0, duration: 1.5, ease: 'power2.inOut' });
-    });
+    if (camCore) {
+      camCore.addEventListener('click', () => {
+        audio.playClick();
+        gsap.to(this.camera.position, { x: 0, y: 0.2, z: 2.8, duration: 1.5, ease: 'power2.inOut' });
+        gsap.to(this.controls.target, { x: 0, y: 0, z: 0, duration: 1.5, ease: 'power2.inOut' });
+      });
+    }
+
+    if (camNeedles) {
+      camNeedles.addEventListener('click', () => {
+        audio.playClick();
+        gsap.to(this.camera.position, { x: 2, y: -2.5, z: 2, duration: 1.5, ease: 'power2.inOut' });
+        gsap.to(this.controls.target, { x: 0, y: -1.8, z: 0, duration: 1.5, ease: 'power2.inOut' });
+      });
+    }
   }
 
   onWindowResize() {
@@ -197,10 +233,17 @@ class App {
     requestAnimationFrame(this.animate);
     const elapsedTime = this.clock.getElapsedTime();
 
-    this.stack.update(elapsedTime);
-    this.controls.update();
-    this.renderer.render(this.scene, this.camera);
+    if (this.stack) this.stack.update(elapsedTime);
+    if (this.controls) this.controls.update();
+    if (this.renderer && this.scene && this.camera) {
+      this.renderer.render(this.scene, this.camera);
+    }
   }
 }
 
-new App();
+// Ensure DOM is fully ready before instantiating App
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => new App());
+} else {
+  new App();
+}
