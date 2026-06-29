@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Altered Carbon | Cortical Stack & DHF Visualizer</title>
+  <meta name="description" content="Interactive WebGL 3D Visualization of the Psychasec Cortical Stack and Digital Human Freight (DHF) from Altered Carbon.">
+  <link rel="stylesheet" href="./src/style.css">
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loader-overlay">
+    <div class="loader-spinner"></div>
+    <div style="font-family: 'Orbitron', sans-serif; letter-spacing: 3px; color: #00f0ff;">
+      INITIALIZING PSYCHASEC DHF INTERFACE...
+    </div>
+  </div>
+
+  <div id="app-container">
+    <!-- 3D WebGL Rendering Canvas -->
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- Cyberpunk Interactive HUD Overlay -->
+    <div class="hud-overlay">
+      <!-- Header Bar -->
+      <header class="hud-header interactive">
+        <div class="brand-title">
+          <div class="brand-logo"></div>
+          <div>
+            <h1>Psychasec DHF</h1>
+            <span>CORTICAL STACK v7.4 SYSTEM</span>
+          </div>
+        </div>
+
+        <div class="hud-status-bar">
+          <div class="status-item">
+            <span class="status-label">STACK INTEGRITY</span>
+            <span class="status-value" id="val-integrity">100.0% SYNC</span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">DHF ENCRYPTION</span>
+            <span class="status-value" style="color: #00ff88;">256-BIT QUANTUM</span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">NEEDLE STATE</span>
+            <span class="status-value" id="val-needles">INSERTED / LOCKED</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Sidebar Control Panels -->
+      <main class="hud-body">
+        <!-- Left Control Panel -->
+        <section class="hud-panel interactive">
+          <div class="panel-title">
+            <span>Core Diagnostics</span>
+            <span style="font-size: 0.7rem; color: var(--text-dim);">SYSTEM_CTRL</span>
+          </div>
+
+          <div class="btn-group">
+            <button class="cyber-btn" id="btn-explode">
+              <span>EXPLODED VIEW</span>
+              <span id="txt-explode-state">[OFF]</span>
+            </button>
+            <button class="cyber-btn accent" id="btn-cast">
+              <span>NEEDLE CAST (DHF TRANSFER)</span>
+              <span>⚡</span>
+            </button>
+            <button class="cyber-btn" id="btn-audio">
+              <span>AUDIO FREQUENCY HUM</span>
+              <span id="txt-audio-state">[MUTED]</span>
+            </button>
+          </div>
+
+          <div class="gauge-container">
+            <div class="gauge-header">
+              <span>NEURAL SYNAPSE LOAD</span>
+              <span id="txt-synapse-load">42%</span>
+            </div>
+            <div class="gauge-bar-outer">
+              <div class="gauge-bar-inner" id="bar-synapse" style="width: 42%;"></div>
+            </div>
+          </div>
+
+          <div class="gauge-container">
+            <div class="gauge-header">
+              <span>STACK INTEGRITY MONITOR</span>
+              <span id="txt-integrity">100%</span>
+            </div>
+            <div class="gauge-bar-outer">
+              <div class="gauge-bar-inner" id="bar-integrity" style="width: 100%;"></div>
+            </div>
+          </div>
+
+          <div style="margin-top: 0.5rem;">
+            <div class="gauge-header" style="margin-bottom: 0.5rem; font-size: 0.8rem; color: var(--text-dim);">
+              AESTHETIC SCHEME / THEME
+            </div>
+            <div class="theme-chips">
+              <div class="theme-chip active" data-theme="envoy">ENVOY CYAN</div>
+              <div class="theme-chip" data-theme="meth">METH GOLD</div>
+              <div class="theme-chip" data-theme="psychasec">PSYCHASEC VIOLET</div>
+              <div class="theme-chip" data-theme="alert">RED ALERT</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Right Spec / Vault Panel -->
+        <section class="hud-panel interactive">
+          <div class="panel-title">
+            <span>DHF Storage Vault</span>
+            <span style="font-size: 0.7rem; color: var(--text-dim);">MEMORY_INDEX</span>
+          </div>
+
+          <div class="spec-list">
+            <div class="spec-row">
+              <span class="key">Subject ID:</span>
+              <span class="val">Takeshi Kovacs (00-412)</span>
+            </div>
+            <div class="spec-row">
+              <span class="key">Origin:</span>
+              <span class="val">Harlan's World</span>
+            </div>
+            <div class="spec-row">
+              <span class="key">Original Age:</span>
+              <span class="val">234 Solar Years</span>
+            </div>
+            <div class="spec-row">
+              <span class="key">Stack Serial:</span>
+              <span class="val">PSYCH-8849-DHF</span>
+            </div>
+            <div class="spec-row">
+              <span class="key">Last Needle Cast:</span>
+              <span class="val">Bay City / Meth Tower</span>
+            </div>
+          </div>
+
+          <div class="panel-title" style="margin-top: 0.5rem;">
+            <span>Camera Presets</span>
+          </div>
+
+          <div class="theme-chips" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="theme-chip active" id="cam-orbit">ORBIT</div>
+            <div class="theme-chip" id="cam-core">CORE</div>
+            <div class="theme-chip" id="cam-needles">NEEDLES</div>
+          </div>
+        </section>
+      </main>
+
+      <!-- Footer Telemetry -->
+      <footer class="hud-footer interactive">
+        <div class="console-text" id="console-msg">
+          [SYS_OK]: Cortical Stack initialized. Ready for DHF query...
+        </div>
+        <div style="color: var(--text-dim); font-size: 0.75rem;">
+          Altered Carbon WebGL | Powered by Three.js & Vite
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

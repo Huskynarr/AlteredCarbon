@@ -1,0 +1,385 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg-color: #05070a;
+  --panel-bg: rgba(10, 15, 24, 0.75);
+  --panel-border: rgba(0, 240, 255, 0.3);
+  --panel-border-glow: rgba(0, 240, 255, 0.6);
+  --primary-cyan: #00f0ff;
+  --secondary-violet: #7000ff;
+  --accent-gold: #ffb700;
+  --alert-red: #ff0033;
+  --text-main: #e2e8f0;
+  --text-dim: #94a3b8;
+  --font-heading: 'Orbitron', sans-serif;
+  --font-body: 'Rajdhani', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+body, html {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  font-size: 16px;
+}
+
+#app-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+}
+
+/* 3D WebGL Canvas */
+#webgl-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* Cyberpunk HUD Overlay */
+.hud-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  pointer-events: none;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding: 1.5rem;
+  box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.8);
+}
+
+.interactive {
+  pointer-events: auto;
+}
+
+/* HUD Header */
+.hud-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--panel-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.15);
+}
+
+.brand-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.brand-logo {
+  width: 32px;
+  height: 32px;
+  background: var(--primary-cyan);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  box-shadow: 0 0 15px var(--primary-cyan);
+}
+
+.brand-title h1 {
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #fff;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px var(--primary-cyan);
+}
+
+.brand-title span {
+  font-size: 0.85rem;
+  color: var(--primary-cyan);
+  letter-spacing: 3px;
+}
+
+.hud-status-bar {
+  display: flex;
+  gap: 2rem;
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+}
+
+.status-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.status-label {
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+}
+
+.status-value {
+  color: var(--primary-cyan);
+  font-weight: 700;
+  text-shadow: 0 0 5px var(--primary-cyan);
+}
+
+/* Main Workspace Middle Grid */
+.hud-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* Glassmorphic Cyberpunk Sidebar Panels */
+.hud-panel {
+  width: 340px;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: var(--panel-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(0, 240, 255, 0.05);
+  transition: border-color 0.3s ease;
+}
+
+.hud-panel:hover {
+  border-color: var(--panel-border-glow);
+}
+
+.panel-title {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--primary-cyan);
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+  padding-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Action Buttons */
+.btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cyber-btn {
+  position: relative;
+  background: rgba(0, 240, 255, 0.08);
+  border: 1px solid var(--primary-cyan);
+  color: #fff;
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  padding: 0.8rem 1.2rem;
+  border-radius: 4px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cyber-btn:hover {
+  background: var(--primary-cyan);
+  color: #000;
+  box-shadow: 0 0 20px var(--primary-cyan);
+  transform: translateY(-2px);
+}
+
+.cyber-btn:active {
+  transform: translateY(0);
+}
+
+.cyber-btn.accent {
+  border-color: var(--secondary-violet);
+  background: rgba(112, 0, 255, 0.15);
+}
+
+.cyber-btn.accent:hover {
+  background: var(--secondary-violet);
+  color: #fff;
+  box-shadow: 0 0 20px var(--secondary-violet);
+}
+
+/* Diagnostic Gauges & Telemetry */
+.gauge-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.gauge-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.gauge-bar-outer {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.gauge-bar-inner {
+  height: 100%;
+  width: 98%;
+  background: linear-gradient(90deg, var(--primary-cyan), var(--secondary-violet));
+  box-shadow: 0 0 10px var(--primary-cyan);
+  transition: width 0.4s ease;
+}
+
+/* Theme Selector Chips */
+.theme-chips {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.theme-chip {
+  padding: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  font-family: var(--font-heading);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.theme-chip:hover, .theme-chip.active {
+  border-color: var(--primary-cyan);
+  color: #fff;
+  background: rgba(0, 240, 255, 0.15);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+}
+
+/* Telemetry Spec Viewer */
+.spec-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.spec-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.3rem 0;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.spec-row .key {
+  color: var(--text-dim);
+}
+
+.spec-row .val {
+  color: var(--primary-cyan);
+  font-weight: 600;
+}
+
+/* Footer Notification Banner */
+.hud-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--panel-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.85rem;
+}
+
+.console-text {
+  font-family: monospace;
+  color: var(--primary-cyan);
+}
+
+/* Custom Scrollbar for HUD Panels */
+.hud-panel::-webkit-scrollbar {
+  width: 4px;
+}
+.hud-panel::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+.hud-panel::-webkit-scrollbar-thumb {
+  background: var(--primary-cyan);
+  border-radius: 2px;
+}
+
+/* Loading Overlay */
+#loader-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #040609;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  transition: opacity 0.8s ease;
+}
+
+.loader-spinner {
+  width: 60px;
+  height: 60px;
+  border: 3px solid rgba(0, 240, 255, 0.1);
+  border-top-color: var(--primary-cyan);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  box-shadow: 0 0 20px var(--primary-cyan);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive adjust */
+@media (max-width: 900px) {
+  .hud-body {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    overflow-y: auto;
+  }
+  .hud-panel {
+    width: 100%;
+    max-height: none;
+  }
+}
